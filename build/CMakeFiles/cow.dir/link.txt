@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/cow.dir/cow.cpp.o -o cow 
