@@ -85,29 +85,18 @@ int main(int argc, char *argv[]){
                 document += "-";
                 pushstack(line, document);
             }
-        }
-        if(line.empty()){
+        }else if(line.empty()){
             if(previous_newline){
                 remove();
                 previous_newline = false;
             } else {
                 previous_newline = true;
             }
-        } else {
-            previous_newline = false;
-            if(line[0] == SPACE && line[1] == SPACE){
-                if(line[2] == SPACE){
-                    document += "+";
-                    pushstack(line, document);
-                }else if(line[2] == TAB){
-                    document += "-";
-                    pushstack(line, document);
-                }
-            }else if(line[0] == SPACE){
-                copystack();
-            }else if(line[0] == TAB){
-                exchange();
-            }
+        }
+        if(line[0] == SPACE && previous_newline){
+            copystack();
+        }else if(line[0] == TAB && previous_newline){
+            exchange();
         }
         if(line[0] == SPACE && line[1] == TAB){
             if(line[2] == SPACE){
