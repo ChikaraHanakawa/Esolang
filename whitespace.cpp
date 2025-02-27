@@ -80,22 +80,90 @@ void calculate_mod(){
     std::cout << num << std::endl;
 }
 
-void heap_take(){
-    int num = stack[0];
-    stack.erase(stack.begin(), stack.begin() + 1);
-    stack.push_back(num);
-}
+class WhitespaceInterpreter {
+public:
+    void interpret(const std::string& code) {
+        std::istringstream iss(code);
+        std::string line;
+        bool previous_newline = false;
 
-int main(int argc, char *argv[]){
-    unsigned int ptr = 0;
-    unsigned int code_ptr = 0;
+        while (std::getline(iss, line)) {
+            if (line.empty()) {
+                handleEmptyLine(previous_newline);
+            } else if (line[0] == SPACE && line[1] == SPACE) {
+                handleSpaceSpace(line);
+            } else if (line[0] == SPACE && previous_newline) {
+                handleSpaceNewline(previous_newline);
+            } else if (line[0] == TAB && previous_newline) {
+                handleTabNewline(previous_newline);
+            } else if (line[0] == SPACE && line[1] == TAB) {
+                handleSpaceTab(line);
+            } else if (line[0] == TAB && line[1] == SPACE) {
+                handleTabSpace(line);
+            }
+        }
+    }
 
-    if(argc != 2){
+private:
+    void handleSpaceSpace(const std::string& line) {
+        std::string document = "";
+        if (line[2] == SPACE) {
+            document += "+";
+            pushstack(line, document);
+        } else if (line[2] == TAB) {
+            document += "-";
+            pushstack(line, document);
+        }
+    }
+
+    void handleEmptyLine(bool& previous_newline) {
+        if (previous_newline) {
+            remove();
+            previous_newline = false;
+        } else {
+            previous_newline = true;
+        }
+    }
+
+    void handleSpaceNewline(bool& previous_newline) {
+        copystack();
+        previous_newline = false;
+    }
+
+    void handleTabNewline(bool& previous_newline) {
+        exchange();
+        previous_newline = false;
+    }
+
+    void handleSpaceTab(const std::string& line) {
+        if (line[2] == SPACE) {
+            std::string n = "";
+            select_copystack(line, n);
+        }
+    }
+
+    void handleTabSpace(const std::string& line) {
+        if (line[2] == SPACE && line[3] == SPACE) {
+            calculate_add();
+        } else if (line[2] == SPACE && line[3] == TAB) {
+            calculate_sub();
+        } else if (line[2] == SPACE && line[3] == NEWLINE) {
+            calculate_mul();
+        } else if (line[2] == TAB && line[3] == SPACE) {
+            calculate_div();
+        } else if (line[2] == TAB && line[3] == TAB) {
+            calculate_mod();
+        }
+    }
+};
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " <filename>" << std::endl;
         return 1;
     }
     std::ifstream file(argv[1]);
-    if(!file.is_open()){
+    if (!file.is_open()) {
         std::cerr << "Error: Could not open file " << argv[1] << std::endl;
         return 1;
     }
@@ -103,49 +171,7 @@ int main(int argc, char *argv[]){
     std::stringstream buffer;
     buffer << file.rdbuf();
     std::string code = buffer.str();
-    std::istringstream iss(code);
-    std::string line;
-    bool previous_newline = false;
-    while (std::getline(iss, line)){
-        std::string document = "";
-        if(line[0] == SPACE && line[1] == SPACE){
-            if(line[2] == SPACE){
-                document += "+";
-                pushstack(line, document);
-            }else if(line[2] == TAB){
-                document += "-";
-                pushstack(line, document);
-            }
-        }else if(line.empty()){
-            if(previous_newline){
-                remove();
-                previous_newline = false;
-            } else {
-                previous_newline = true;
-            }
-        }else if(line[0] == SPACE && previous_newline){
-            copystack();
-            previous_newline = false;
-        }else if(line[0] == TAB && previous_newline){
-            exchange();
-            previous_newline = false;
-        }else if(line[0] == SPACE && line[1] == TAB){
-            if(line[2] == SPACE){
-                std::string n = "";
-                select_copystack(line, n);
-            }
-        } else if(line[0] == TAB && line[1] == SPACE){
-            if(line[2] == SPACE && line[3] == SPACE){
-                calculate_add();
-            }else if(line[2] == SPACE && line[3] == TAB){
-                calculate_sub();
-            }else if(line[2] == SPACE && line[3] == NEWLINE){
-                calculate_mul();
-            }else if(line[2] == TAB && line[3] == SPACE){
-                calculate_div();
-            }else if(line[2] == TAB && line[3] == TAB){
-                calculate_mod();
-            }
-        }
-    }
+
+    WhitespaceInterpreter interpreter;
+    interpreter.interpret(code);
 }
